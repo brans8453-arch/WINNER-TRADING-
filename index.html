@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WINNER TRADING Exchange Demo</title>
+
+<script src="https://s3.tradingview.com/tv.js"></script>
+
+<style>
+body{margin:0;font-family:Arial;background:#111;color:white;scroll-behavior:smooth}
+header{position:fixed;width:100%;background:#083c2f;padding:10px;z-index:10}
+header button{background:#ff8800;color:white;border:none;padding:6px;margin:2px;border-radius:5px}
+.logo{font-weight:bold;color:#00ffa6}
+section{min-height:100vh;padding:80px 15px}
+.card{background:#1c1c1c;padding:12px;border-radius:10px;margin:8px 0}
+h2{color:#00ffa6}
+input,select{width:100%;padding:7px;margin:4px 0;border:none;border-radius:5px}
+button.action{background:#00c26e;border:none;padding:8px;width:100%;color:white;border-radius:6px}
+.orange{background:#ff8800}
+.hidden{display:none}
+#notif{position:fixed;top:60px;right:10px;background:#00c26e;padding:10px;border-radius:6px;display:none}
+table{width:100%;font-size:13px}
+td{padding:4px}
+.green{color:#0f0}
+.red{color:#f44}
+</style>
+</head>
+
+<body>
+
+<header>
+<span class="logo">🏆 WINNER TRADING</span>
+<button onclick="show('home')">Accueil</button>
+<button onclick="show('login')">Connexion</button>
+<button onclick="show('register')">Compte</button>
+</header>
+
+<div id="notif"></div>
+
+<!-- ===================== ACCUEIL ===================== -->
+<section id="home">
+<h2>Marché Crypto Temps Réel</h2>
+<div id="chart" style="height:400px;"></div>
+
+<div class="card">
+Exchange démo moderne inspiré de Binance Lite.
+<button class="action" onclick="show('register')">Trader maintenant</button>
+</div>
+
+<div class="card">
+BTC • ETH • SOL • BNB • XRP • USDT
+</div>
+
+<div class="card">
+Devise : <b>"Tradez malin, gagnez ensemble."</b>
+</div>
+</section>
+
+<!-- ===================== LOGIN ===================== -->
+<section id="login" class="hidden">
+<h2>Connexion</h2>
+<input id="loginEmail" placeholder="Email">
+<input id="loginPass" placeholder="Mot de passe">
+<button class="action" onclick="login()">Connexion</button>
+<p>Admin: admin / admin123</p>
+</section>
+
+<!-- ===================== REGISTER ===================== -->
+<section id="register" class="hidden">
+<h2>Créer compte</h2>
+<input id="regEmail" placeholder="Email">
+<input id="regPass" placeholder="Mot de passe 6 chiffres">
+<input id="refCode" placeholder="Code parrain obligatoire">
+<button class="action" onclick="register()">Créer compte</button>
+</section>
+
+<!-- ===================== DASHBOARD ===================== -->
+<section id="dashboard" class="hidden">
+<h2>Dashboard Utilisateur</h2>
+
+<div class="card">
+Solde total: <span id="totalBalance"></span> USDT
+<button onclick="toggleBalance()">Afficher/Masquer</button>
+</div>
+
+<div class="card">
+<h3>Wallet multi crypto</h3>
+<div id="wallets"></div>
+</div>
+
+<div class="card">
+<h3>Dépôt simulé</h3>
+<input id="depositAmount" placeholder="Montant">
+<button class="action" onclick="deposit()">Demande dépôt</button>
+</div>
+
+<div class="card">
+<h3>Trading Achat / Vente</h3>
+<select id="coin">
+<option>BTC</option>
+<option>ETH</option>
+<option>SOL</option>
+</select>
+<input id="amount" placeholder="Montant USDT">
+<button class="action" onclick="buy()">Acheter</button>
+<button class="action orange" onclick="sell()">Vendre</button>
+</div>
+
+<div class="card">
+<h3>Signal automatique</h3>
+<button class="action" onclick="tradeSignal()">Trader signal</button>
+<p id="signalStatus"></p>
+</div>
+
+<div class="card">
+<h3>Carnet d’ordres (simulé)</h3>
+<table id="orderBook"></table>
+</div>
+
+<div class="card">
+<h3>Historique trading</h3>
+<div id="history"></div>
+</div>
+
+<div class="card">
+<h3>Classement traders</h3>
+<div id="leaderboard"></div>
+</div>
+
+<div class="card">
+<h3>Équipe & Parrainage</h3>
+<p id="refText"></p>
+<p>Membres équipe: <span id="teamCount">0</span></p>
+</div>
+
+<div class="card">
+<h3>Formation & IA</h3>
+<input id="question" placeholder="Question crypto">
+<button class="action" onclick="askAI()">Demander</button>
+<p id="aiResponse"></p>
+</div>
+</section>
+
+<!-- ===================== ADMIN ===================== -->
+<section id="admin" class="hidden">
+<h2>Interface Administrateur</h2>
+
+<div class="card">
+Capital plateforme: 200 000 USDT (démo)
+</div>
+
+<div class="card">
+Suivi utilisateurs
+<div id="userList"></div>
+</div>
+
+<div class="card">
+Historique global trading
+<div id="globalHistory"></div>
+</div>
+</section>
+
+<!-- ===================== CONTACT ===================== -->
+<section>
+<h2>Communauté WINNER TRADING</h2>
+<p>Utilisateurs actifs : 18 000+</p>
+<p>Plateforme innovante depuis 2024</p>
+<p>Données protégées 🔒</p>
+</section>
+
+<script>
+// Graphique réel
+new TradingView.widget({
+container_id:"chart",
+width:"100%",
+height:400,
+symbol:"BINANCE:BTCUSDT",
+interval:"30",
+theme:"dark"
+});
+
+// Notifications
+function notify(msg){
+let n=document.getElementById("notif");
+n.innerText=msg;
+n.style.display="block";
+setTimeout(()=>n.style.display="none",2500);
+}
+
+// Navigation
+function show(id){
+document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+}
+
+// Base locale
+let users=JSON.parse(localStorage.users||"{}");
+let historyGlobal=[];
+let currentUser=null;
+
+// Inscription
+function register(){
+let email=regEmail.value;
+let pass=regPass.value;
+let ref=refCode.value;
+
+if(!ref)return notify("Code parrain requis");
+
+users[email]={
+pass,
+wallet:{USDT:0,BTC:0,ETH:0,SOL:0},
+history:[],
+ref:"WT"+Math.floor(Math.random()*9999),
+team:0
+};
+
+localStorage.users=JSON.stringify(users);
+notify("Compte créé");
+show("login");
+}
+
+// Connexion
+function login(){
+if(loginEmail.value==="admin" && loginPass.value==="admin123"){
+show("admin");
+renderUsers();
+return;
+}
+
+let u=users[loginEmail.value];
+if(!u || u.pass!==loginPass.value)
+return notify("Connexion refusée");
+
+currentUser=loginEmail.value;
+updateWallet();
+refText.innerText="Votre code: "+u.ref;
+teamCount.innerText=u.team;
+renderHistory();
+show("dashboard");
+}
+
+// Wallet affichage
+function updateWallet(){
+let w=users[currentUser].wallet;
+wallets.innerHTML="";
+let total=0;
+
+for(let k in w){
+wallets.innerHTML+=k+" : "+w[k]+"<br>";
+if(k==="USDT")total+=w[k];
+}
+
+totalBalance.innerText=total;
+renderOrders();
+renderLeaderboard();
+localStorage.users=JSON.stringify(users);
+}
+
+// Dépôt simulé
+function deposit(){
+let amount=parseFloat(depositAmount.value);
+users[currentUser].wallet.USDT+=amount;
+notify("Dépôt confirmé");
+updateWallet();
+}
+
+// Achat
+function buy(){
+let amt=parseFloat(amount.value);
+let coin=document.getElementById("coin").value;
+
+if(users[currentUser].wallet.USDT<amt)
+return notify("Solde insuffisant");
+
+users[currentUser].wallet.USDT-=amt;
+users[currentUser].wallet[coin]+=amt/1000;
+
+addHistory("Achat "+coin+" "+amt);
+updateWallet();
+}
+
+// Vente
+function sell(){
+let amt=parseFloat(amount.value);
+let coin=document.getElementById("coin").value;
+
+users[currentUser].wallet.USDT+=amt;
+users[currentUser].wallet[coin]-=amt/1000;
+
+addHistory("Vente "+coin+" "+amt);
+updateWallet();
+}
+
+// Signal
+function tradeSignal(){
+let gain=Math.floor(Math.random()*20)+5;
+users[currentUser].wallet.USDT+=gain;
+addHistory("Signal +"+gain);
+updateWallet();
+notify("Signal gagné +" + gain);
+}
+
+// Historique
+function addHistory(text){
+let h=users[currentUser].history;
+h.unshift(new Date().toLocaleTimeString()+" - "+text);
+historyGlobal.unshift(currentUser+" : "+text);
+renderHistory();
+}
+
+// Affichage historique
+function renderHistory(){
+history.innerHTML=users[currentUser].history.slice(0,10).join("<br>");
+}
+
+// Carnet ordres simulé
+function renderOrders(){
+let html="<tr><td>Prix</td><td>Volume</td></tr>";
+for(let i=0;i<5;i++){
+html+="<tr class='red'><td>"+(30000+i*50)+"</td><td>"+(Math.random()*2).toFixed(3)+"</td></tr>";
+}
+for(let i=0;i<5;i++){
+html+="<tr class='green'><td>"+(29900-i*50)+"</td><td>"+(Math.random()*2).toFixed(3)+"</td></tr>";
+}
+orderBook.innerHTML=html;
+}
+
+// Classement traders
+function renderLeaderboard(){
+let arr=[];
+for(let u in users)
+arr.push([u,users[u].wallet.USDT]);
+
+arr.sort((a,b)=>b[1]-a[1]);
+
+leaderboard.innerHTML=arr.slice(0,5)
+.map((u,i)=>`${i+1}. ${u[0]} : ${u[1]} USDT`)
+.join("<br>");
+}
+
+// Admin liste utilisateurs
+function renderUsers(){
+userList.innerHTML=Object.keys(users)
+.map(u=>u+" : "+users[u].wallet.USDT+" USDT")
+.join("<br>");
+
+globalHistory.innerHTML=historyGlobal.slice(0,15).join("<br>");
+}
+
+// IA
+function askAI(){
+aiResponse.innerText="Conseil IA : gérez votre risque et tradez avec discipline.";
+}
+
+// Masquer solde
+function toggleBalance(){
+let t=document.getElementById("totalBalance");
+t.style.visibility=t.style.visibility==="hidden"?"visible":"hidden";
+}
+</script>
+
+</body>
+</html>
