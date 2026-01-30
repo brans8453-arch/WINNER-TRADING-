@@ -121,6 +121,12 @@ Solde total: <span id="totalBalance"></span> USDT
 <p>Membres équipe: <span id="teamCount">0</span></p>
 <p>Bonus gagné: <span id="teamBonus">0</span> USDT</p>
 </div>
+
+<div class="card">
+<h3>Signal automatique</h3>
+<button class="action" onclick="tradeSignal()">Trader signal</button>
+<p id="signalStatus"></p>
+</div>
 </section>
 
 <!-- ================= ADMIN ================= -->
@@ -142,6 +148,13 @@ Solde plateforme: 200000 USDT
 </div>
 
 <div class="card">
+<h3>Activation compte utilisateur</h3>
+<input id="activateUserId" placeholder="Email ou ID utilisateur">
+<input id="activateAmount" placeholder="Montant initial (USDT)">
+<button class="action" onclick="activateUser()">Activer compte</button>
+</div>
+
+<div class="card">
 <h3>Utilisateurs</h3>
 <button class="action" onclick="renderUsers()">Voir utilisateurs</button>
 <div id="userList"></div>
@@ -159,18 +172,17 @@ interval:"30",
 theme:"dark"
 });
 
+// ===================== Fonctions génériques =====================
 function notify(msg){
 let n=document.getElementById("notif");
 n.innerText=msg;
 n.style.display="block";
 setTimeout(()=>n.style.display="none",2500);
 }
-
 function show(id){
 document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));
 document.getElementById(id).classList.remove("hidden");
 }
-
 function toggleLoginRegister(){show('loginRegister');}
 
 let users=JSON.parse(localStorage.users||"{}");
@@ -197,36 +209,51 @@ let refInput=refCode.value;
 if(!refInput) return notify("Code parrain requis");
 
 let refOwner=null;
-for(let u in users){
-if(users[u].ref===refInput) refOwner=u;
-}
+for(let u in users){ if(users[u].ref===refInput) refOwner=u; }
 
 users[email]={
 pass,
-wallet:{USDT:10000,BTC:0,ETH:0,SOL:0},
+wallet:{USDT:0,BTC:0,ETH:0,SOL:0}, // solde 0
 history:[],
 ref:"WT"+Math.floor(Math.random()*99999),
 team:0,
 bonus:0,
-sponsor:refOwner
+sponsor:refOwner,
+active:false
 };
 
-if(refOwner){
-users[refOwner].team++;
-users[refOwner].bonus+=100;
-users[refOwner].wallet.USDT+=100;
+notify("Compte créé, en attente activation admin");
+localStorage.users=JSON.stringify(users);
+}
+
+// ================= ADMIN ACTIVER COMPTE =================
+function activateUser(){
+let id=document.getElementById("activateUserId").value;
+let amount=parseFloat(document.getElementById("activateAmount").value)||50;
+if(!users[id]) return notify("Utilisateur introuvable");
+if(users[id].active) return notify("Utilisateur déjà activé");
+
+users[id].wallet.USDT=amount;
+users[id].active=true;
+
+if(users[id].sponsor){
+let sponsor=users[id].sponsor;
+users[sponsor].bonus+=8;
+users[sponsor].wallet.USDT+=8;
 }
 
 localStorage.users=JSON.stringify(users);
-notify("Compte créé avec bonus parrainage");
+notify("Compte activé : " + id + " avec solde " + amount + " USDT et bonus parrain 8 USDT");
+updateTotalFunds();
 }
 
 // ================= LOGIN =================
 function login(){
 let u=users[loginEmail.value];
 if(!u || u.pass!==loginPass.value) return notify("Connexion refusée");
-
 currentUser=loginEmail.value;
+
+if(!u.active && currentUser!=="admin") return notify("Votre compte n'est pas encore activé par l'admin");
 
 if(currentUser==="admin"){
 adminRef.innerText="Code admin : "+u.ref;
@@ -256,8 +283,8 @@ totalBalance.innerText=total.toFixed(2);
 renderLeaderboard();
 localStorage.users=JSON.stringify(users);
 }
-
 function deposit(){
+if(!users[currentUser].active) return notify("Compte non activé");
 let amount=parseFloat(depositAmount.value);
 if(!amount) return;
 users[currentUser].wallet.USDT+=amount;
@@ -266,32 +293,38 @@ updateWallet();
 
 // ================= TRADING =================
 function buy(){
+if(!users[currentUser].active) return notify("Compte non activé");
 let amt=parseFloat(amount.value);
 let coin=document.getElementById("coin").value;
 if(users[currentUser].wallet.USDT<amt) return;
-
 let price=Math.random()*30000+1000;
 let qty=amt/price;
-
 users[currentUser].wallet.USDT-=amt;
 users[currentUser].wallet[coin]+=qty;
 addHistory("Achat "+coin);
 updateWallet();
 }
-
 function sell(){
+if(!users[currentUser].active) return notify("Compte non activé");
 let amt=parseFloat(amount.value);
 let coin=document.getElementById("coin").value;
-
 let price=Math.random()*30000+1000;
 let qty=amt/price;
-
 if(users[currentUser].wallet[coin]<qty) return;
-
 users[currentUser].wallet[coin]-=qty;
 users[currentUser].wallet.USDT+=amt;
 addHistory("Vente "+coin);
 updateWallet();
+}
+
+// ================= SIGNAL =================
+function tradeSignal(){
+if(!users[currentUser].active) return notify("Compte non activé");
+let gain=Math.floor(Math.random()*20)+5;
+users[currentUser].wallet.USDT+=gain;
+addHistory("Signal +"+gain);
+updateWallet();
+notify("Signal gagné +" + gain);
 }
 
 // ================= HISTORIQUE =================
@@ -299,7 +332,6 @@ function addHistory(text){
 users[currentUser].history.unshift(new Date().toLocaleTimeString()+" - "+text);
 renderHistory();
 }
-
 function renderHistory(){
 history.innerHTML=users[currentUser].history.slice(0,10).join("<br>");
 }
@@ -320,33 +352,25 @@ userList.innerHTML=Object.keys(users)
 .map(u=>u+" : "+users[u].wallet.USDT.toFixed(2))
 .join("<br>");
 }
-
 function updateTotalFunds(){
 let sum=0;
-for(let u in users){
-sum+=users[u].wallet.USDT;
-}
+for(let u in users){ sum+=users[u].wallet.USDT; }
 totalFunds.innerText=sum.toFixed(2)+" USDT en circulation";
 }
 
-// ================= ACTIVITY =================
+// ================= ACTIVITÉ =================
 const fakeUsers=["Trader245","CryptoMax","UserX","Alpha"];
 const actions=["acheté","vendu"];
-
 function fakeTrade(){
 let user=fakeUsers[Math.floor(Math.random()*fakeUsers.length)];
 let action=actions[Math.floor(Math.random()*actions.length)];
 let amount=(Math.random()*0.5).toFixed(3);
-
 const ul=document.getElementById("activity");
 if(!ul) return;
-
 const li=document.createElement("li");
 li.innerText=`${user} a ${action} ${amount} BTC`;
 ul.prepend(li);
-
-if(ul.children.length>5)
-ul.removeChild(ul.lastChild);
+if(ul.children.length>5) ul.removeChild(ul.lastChild);
 }
 setInterval(fakeTrade,15000);
 
@@ -361,7 +385,8 @@ wallet:{USDT:Math.random()*50000,BTC:0,ETH:0,SOL:0},
 history:[],
 ref:"WT"+Math.floor(Math.random()*99999),
 team:0,
-bonus:0
+bonus:0,
+active:true
 };
 }
 }
