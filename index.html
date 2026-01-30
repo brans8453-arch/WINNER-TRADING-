@@ -31,9 +31,8 @@ td{padding:4px}
 
 <header>
 <span class="logo">🏆 WINNER TRADING</span>
-<button onclick="show('home')">Accueil</button>
-<button onclick="show('login')">Connexion</button>
-<button onclick="show('register')">Compte</button>
+<!-- Bouton fusionné -->
+<button onclick="toggleLoginRegister()">Connexion / Compte / Créer compte</button>
 </header>
 
 <div id="notif"></div>
@@ -45,7 +44,7 @@ td{padding:4px}
 
 <div class="card">
 Exchange démo moderne inspiré de Binance Lite.
-<button class="action" onclick="show('register')">Trader maintenant</button>
+<button class="action" onclick="show('register')">Trader maintenant - Cliquez ici pour commencer</button>
 </div>
 
 <div class="card">
@@ -57,22 +56,19 @@ Devise : <b>"Tradez malin, gagnez ensemble."</b>
 </div>
 </section>
 
-<!-- ===================== LOGIN ===================== -->
-<section id="login" class="hidden">
-<h2>Connexion</h2>
+<!-- ===================== LOGIN / REGISTER ===================== -->
+<section id="loginRegister" class="hidden">
+<h2>Connexion / Création de compte</h2>
 <input id="loginEmail" placeholder="Email">
 <input id="loginPass" placeholder="Mot de passe">
-<button class="action" onclick="login()">Connexion</button>
-<p>Admin: admin / admin123</p>
-</section>
+<button class="action" onclick="login()">Connexion - Cliquez ici pour commencer</button>
 
-<!-- ===================== REGISTER ===================== -->
-<section id="register" class="hidden">
-<h2>Créer compte</h2>
+<hr style="border:1px solid #333">
+
 <input id="regEmail" placeholder="Email">
 <input id="regPass" placeholder="Mot de passe 6 chiffres">
 <input id="refCode" placeholder="Code parrain obligatoire">
-<button class="action" onclick="register()">Créer compte</button>
+<button class="action" onclick="register()">Créer compte - Cliquez ici pour commencer</button>
 </section>
 
 <!-- ===================== DASHBOARD ===================== -->
@@ -92,7 +88,7 @@ Solde total: <span id="totalBalance"></span> USDT
 <div class="card">
 <h3>Dépôt simulé</h3>
 <input id="depositAmount" placeholder="Montant">
-<button class="action" onclick="deposit()">Demande dépôt</button>
+<button class="action" onclick="deposit()">Demande dépôt - Cliquez ici pour commencer</button>
 </div>
 
 <div class="card">
@@ -103,13 +99,13 @@ Solde total: <span id="totalBalance"></span> USDT
 <option>SOL</option>
 </select>
 <input id="amount" placeholder="Montant USDT">
-<button class="action" onclick="buy()">Acheter</button>
-<button class="action orange" onclick="sell()">Vendre</button>
+<button class="action" onclick="buy()">Acheter - Cliquez ici pour commencer</button>
+<button class="action orange" onclick="sell()">Vendre - Cliquez ici pour commencer</button>
 </div>
 
 <div class="card">
 <h3>Signal automatique</h3>
-<button class="action" onclick="tradeSignal()">Trader signal</button>
+<button class="action" onclick="tradeSignal()">Trader signal - Cliquez ici pour commencer</button>
 <p id="signalStatus"></p>
 </div>
 
@@ -137,7 +133,7 @@ Solde total: <span id="totalBalance"></span> USDT
 <div class="card">
 <h3>Formation & IA</h3>
 <input id="question" placeholder="Question crypto">
-<button class="action" onclick="askAI()">Demander</button>
+<button class="action" onclick="askAI()">Demander - Cliquez ici pour commencer</button>
 <p id="aiResponse"></p>
 </div>
 </section>
@@ -159,6 +155,8 @@ Suivi utilisateurs
 Historique global trading
 <div id="globalHistory"></div>
 </div>
+
+<button class="action" onclick="notify('Interface admin prête - Cliquez ici pour commencer')">Cliquez ici pour commencer</button>
 </section>
 
 <!-- ===================== CONTACT ===================== -->
@@ -194,6 +192,11 @@ document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));
 document.getElementById(id).classList.remove("hidden");
 }
 
+// Toggle Login/Register
+function toggleLoginRegister(){
+show('loginRegister');
+}
+
 // Base locale
 let users=JSON.parse(localStorage.users||"{}");
 let historyGlobal=[];
@@ -216,8 +219,8 @@ team:0
 };
 
 localStorage.users=JSON.stringify(users);
-notify("Compte créé");
-show("login");
+notify("Compte créé - Cliquez ici pour commencer");
+show("loginRegister");
 }
 
 // Connexion
@@ -261,7 +264,7 @@ localStorage.users=JSON.stringify(users);
 function deposit(){
 let amount=parseFloat(depositAmount.value);
 users[currentUser].wallet.USDT+=amount;
-notify("Dépôt confirmé");
+notify("Dépôt confirmé - Cliquez ici pour commencer");
 updateWallet();
 }
 
