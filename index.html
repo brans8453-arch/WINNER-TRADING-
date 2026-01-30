@@ -19,11 +19,13 @@ input,select{width:100%;padding:7px;margin:4px 0;border:none;border-radius:5px}
 button.action{background:#00c26e;border:none;padding:8px;width:100%;color:white;border-radius:6px}
 .orange{background:#ff8800}
 .hidden{display:none}
-#notif{position:fixed;top:60px;right:10px;background:#00c26e;padding:10px;border-radius:6px;display:none}
+#notif{position:fixed;top:60px;right:10px;background:#00c26e;padding:10px;border-radius:6px;display:none;z-index:20}
 table{width:100%;font-size:13px}
 td{padding:4px}
 .green{color:#0f0}
 .red{color:#f44}
+ul#activity{list-style:none;padding-left:0;margin-top:10px}
+ul#activity li{padding:3px 0}
 </style>
 </head>
 
@@ -31,7 +33,6 @@ td{padding:4px}
 
 <header>
 <span class="logo">🏆 WINNER TRADING</span>
-<!-- Bouton unique avec 3 traits -->
 <button onclick="toggleLoginRegister()">☰</button>
 </header>
 
@@ -140,6 +141,11 @@ Solde total: <span id="totalBalance"></span> USDT
 </div>
 
 <div class="card">
+<h3>Activité récente</h3>
+<ul id="activity"></ul>
+</div>
+
+<div class="card">
 <h3>Équipe & Parrainage</h3>
 <p id="refText"></p>
 <p>Membres équipe: <span id="teamCount">0</span></p>
@@ -183,7 +189,7 @@ Solde plateforme: <span id="adminBalance">200000</span> USDT (démo)
 </section>
 
 <script>
-// Graphique réel
+// --------- Graphique réel ---------
 new TradingView.widget({
 container_id:"chart",
 width:"100%",
@@ -193,7 +199,7 @@ interval:"30",
 theme:"dark"
 });
 
-// Notifications
+// --------- Notifications ---------
 function notify(msg){
 let n=document.getElementById("notif");
 n.innerText=msg;
@@ -201,30 +207,27 @@ n.style.display="block";
 setTimeout(()=>n.style.display="none",2500);
 }
 
-// Navigation
+// --------- Navigation ---------
 function show(id){
 document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));
 document.getElementById(id).classList.remove("hidden");
 }
-
-// Toggle Login/Register
 function toggleLoginRegister(){show('loginRegister');}
 
-// Base locale
+// --------- Base locale ---------
 let users=JSON.parse(localStorage.users||"{}");
 let historyGlobal=[];
 let currentUser=null;
 
-// Inscription
+// --------- Inscription / Connexion ---------
 function register(){
 let email=regEmail.value;
 let pass=regPass.value;
 let ref=refCode.value;
 if(!ref) return notify("Code parrain requis");
-
 users[email]={
 pass,
-wallet:{USDT:0,BTC:0,ETH:0,SOL:0},
+wallet:{USDT:10000,BTC:0,ETH:0,SOL:0},
 history:[],
 ref:"WT"+Math.floor(Math.random()*9999),
 team:0
@@ -233,8 +236,6 @@ localStorage.users=JSON.stringify(users);
 notify("Compte créé - Cliquez ici pour commencer");
 show("loginRegister");
 }
-
-// Connexion
 function login(){
 if(loginEmail.value==="admin" && loginPass.value==="admin123"){
 show("admin");
@@ -250,58 +251,65 @@ renderHistory();
 show("dashboard");
 }
 
-// Wallet
+// --------- Wallet / Dépôt / Trading ---------
 function updateWallet(){
 let w=users[currentUser].wallet;
 wallets.innerHTML="";
 let total=0;
 for(let k in w){
-wallets.innerHTML+=k+" : "+w[k]+"<br>";
+wallets.innerHTML+=k+" : "+w[k].toFixed(4)+"<br>";
 if(k==="USDT") total+=w[k];
 }
-totalBalance.innerText=total;
+totalBalance.innerText=total.toFixed(2);
 renderOrders();
 renderLeaderboard();
 localStorage.users=JSON.stringify(users);
 }
-
-// Dépôt
 function deposit(){
 let amount=parseFloat(depositAmount.value);
+if(!amount || amount<=0) return notify("Montant invalide");
 users[currentUser].wallet.USDT+=amount;
-notify("Dépôt confirmé - Cliquez ici");
+addHistory("Dépôt "+amount);
 updateWallet();
+notify("Dépôt confirmé");
 }
 
-// Achat / Vente
+// Achat / Vente avec simulation réelle
 function buy(){
 let amt=parseFloat(amount.value);
 let coin=document.getElementById("coin").value;
 if(users[currentUser].wallet.USDT<amt) return notify("Solde insuffisant");
+let price=Math.random()*30000+1000; // prix fake
+let coinsBought=amt/price;
 users[currentUser].wallet.USDT-=amt;
-users[currentUser].wallet[coin]+=amt/1000;
-addHistory("Achat "+coin+" "+amt);
+users[currentUser].wallet[coin]+=coinsBought;
+addHistory("Achat "+coin+" "+coinsBought.toFixed(4)+" à "+price.toFixed(2));
 updateWallet();
+notify("Achat confirmé");
 }
 function sell(){
 let amt=parseFloat(amount.value);
 let coin=document.getElementById("coin").value;
+let price=Math.random()*30000+1000;
+let coinsSold=amt/price;
+if(users[currentUser].wallet[coin]<coinsSold) return notify("Pas assez de "+coin);
+users[currentUser].wallet[coin]-=coinsSold;
 users[currentUser].wallet.USDT+=amt;
-users[currentUser].wallet[coin]-=amt/1000;
-addHistory("Vente "+coin+" "+amt);
+addHistory("Vente "+coin+" "+coinsSold.toFixed(4)+" à "+price.toFixed(2));
 updateWallet();
+notify("Vente confirmée");
 }
 
-// Signal trading
+// --------- Signal trading ---------
 function tradeSignal(){
-let gain=Math.floor(Math.random()*20)+5;
+let gain=Math.floor(Math.random()*50)+5;
 users[currentUser].wallet.USDT+=gain;
-addHistory("Signal +"+gain);
+addHistory("Signal +"+gain+" USDT");
 updateWallet();
 notify("Signal gagné +" + gain);
 }
 
-// Retrait
+// --------- Retrait / Envoi ---------
 function withdraw(){
 let id=withdrawId.value;
 let amt=parseFloat(withdrawAmount.value);
@@ -309,10 +317,8 @@ if(users[currentUser].wallet.USDT<amt) return notify("Solde insuffisant");
 users[currentUser].wallet.USDT-=amt;
 addHistory("Retrait "+amt+" USDT vers "+id);
 updateWallet();
-notify("Retrait confirmé - Cliquez ici");
+notify("Retrait confirmé");
 }
-
-// Envoyer fonds
 function sendFunds(){
 let id=sendId.value;
 let amt=parseFloat(sendAmount.value);
@@ -322,10 +328,10 @@ users[currentUser].wallet.USDT-=amt;
 users[id].wallet.USDT+=amt;
 addHistory("Envoyé "+amt+" USDT à "+id);
 updateWallet();
-notify("Envoi confirmé - Cliquez ici");
+notify("Envoi confirmé");
 }
 
-// Historique
+// --------- Historique ---------
 function addHistory(text){
 let h=users[currentUser].history;
 h.unshift(new Date().toLocaleTimeString()+" - "+text);
@@ -334,7 +340,7 @@ renderHistory();
 }
 function renderHistory(){history.innerHTML=users[currentUser].history.slice(0,10).join("<br>");}
 
-// Carnet ordres
+// --------- Carnet d'ordres ---------
 function renderOrders(){
 let html="<tr><td>Prix</td><td>Volume</td></tr>";
 for(let i=0;i<5;i++){html+="<tr class='red'><td>"+(30000+i*50)+"</td><td>"+(Math.random()*2).toFixed(3)+"</td></tr>";}
@@ -342,21 +348,52 @@ for(let i=0;i<5;i++){html+="<tr class='green'><td>"+(29900-i*50)+"</td><td>"+(Ma
 orderBook.innerHTML=html;
 }
 
-// Classement traders
+// --------- Classement traders ---------
 function renderLeaderboard(){
 let arr=[];
 for(let u in users) arr.push([u,users[u].wallet.USDT]);
 arr.sort((a,b)=>b[1]-a[1]);
-leaderboard.innerHTML=arr.slice(0,5).map((u,i)=>`${i+1}. ${u[0]} : ${u[1]} USDT`).join("<br>");
+leaderboard.innerHTML=arr.slice(0,5).map((u,i)=>`${i+1}. ${u[0]} : ${u[1].toFixed(2)} USDT`).join("<br>");
 }
 
-// Admin users
-function renderUsers(){userList.innerHTML=Object.keys(users).map(u=>u+" : "+users[u].wallet.USDT+" USDT").join("<br>");}
+// --------- Admin users ---------
+function renderUsers(){userList.innerHTML=Object.keys(users).map(u=>u+" : "+users[u].wallet.USDT.toFixed(2)+" USDT").join("<br>");}
 function renderGlobalHistory(){globalHistory.innerHTML=historyGlobal.slice(0,15).join("<br>");}
 
-// IA
+// --------- IA ---------
 function askAI(){aiResponse.innerText="Conseil IA : gérez votre risque et tradez avec discipline.";}
 function toggleBalance(){let t=document.getElementById("totalBalance");t.style.visibility=t.style.visibility==="hidden"?"visible":"hidden";}
+
+// --------- Activité simulée ---------
+const fakeUsers=["Trader245","UserX12","CryptoKing","Alpha01","TraderPro"];
+const actions=["acheté","vendu"];
+function fakeTrade(){
+let user=fakeUsers[Math.floor(Math.random()*fakeUsers.length)];
+let action=actions[Math.floor(Math.random()*actions.length)];
+let amount=(Math.random()*0.5).toFixed(3);
+const div=document.createElement("div");
+div.innerText=`${user} a ${action} ${amount} BTC`;
+div.style.position="fixed";
+div.style.bottom="20px";
+div.style.left="20px";
+div.style.background="#111";
+div.style.color="white";
+div.style.padding="10px";
+div.style.borderRadius="6px";
+document.body.appendChild(div);
+setTimeout(()=>div.remove(),4000);
+
+addActivity(`${user} a ${action} ${amount} BTC`);
+}
+function addActivity(text){
+const ul=document.getElementById("activity");
+const li=document.createElement("li");
+li.innerText=text;
+ul.prepend(li);
+if(ul.children.length>5) ul.removeChild(ul.lastChild);
+}
+setInterval(fakeTrade,15000);
+
 </script>
 
 </body>
