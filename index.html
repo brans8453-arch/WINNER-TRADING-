@@ -282,6 +282,20 @@ function toggleLoginRegister(){show('loginRegister');}
 let users=JSON.parse(localStorage.users||"{}");
 let currentUser=null;
 
+// ===== SAUVEGARDE SÉCURISÉE =====
+function saveUsers(){
+  localStorage.users = JSON.stringify(users);
+}
+
+// ===== MARCHÉ SIMULÉ STABLE =====
+let marketPrice = { BTC:30000, ETH:1800, SOL:100 };
+function updateMarket(){
+  for(let c in marketPrice){
+    marketPrice[c] *= 1 + (Math.random()-0.5)/100;
+  }
+}
+setInterval(updateMarket,4000);
+
 // ADMIN auto
 if(!users["admin"]){
 users["admin"]={
@@ -293,7 +307,7 @@ team:0,
 bonus:0,
 active:true
 };
-localStorage.users=JSON.stringify(users);
+saveUsers();
 }
 
 // ================= INSCRIPTION =================
@@ -317,12 +331,13 @@ sponsor:refOwner,
 active:false
 };
 notify("Compte créé, en attente activation admin");
-localStorage.users=JSON.stringify(users);
+saveUsers();
 }
 
 // ================= ADMIN =================
 function activateUser(){
 let id=document.getElementById("activateUserId").value;
+if(id==="admin") return notify("Compte admin protégé"); // protection admin
 let amount=parseFloat(document.getElementById("activateAmount").value)||50;
 if(!users[id]) return notify("Utilisateur introuvable");
 if(users[id].active) return notify("Utilisateur déjà activé");
@@ -336,7 +351,7 @@ users[sponsor].bonus+=8;
 users[sponsor].wallet.USDT+=8;
 }
 
-localStorage.users=JSON.stringify(users);
+saveUsers();
 notify("Compte activé : " + id + " avec solde " + amount + " USDT et bonus parrain 8 USDT");
 updateTotalFunds();
 }
@@ -368,21 +383,27 @@ show("dashboard");
 function updateWallet(){
 let w=users[currentUser].wallet;
 wallets.innerHTML="";
-let total=0;
+let total=w.USDT;
+
 for(let k in w){
 wallets.innerHTML+=k+" : "+w[k].toFixed(4)+"<br>";
-if(k==="USDT") total+=w[k];
+if(k!=="USDT" && marketPrice[k]){
+  total += w[k]*marketPrice[k];
 }
+}
+
 totalBalance.innerText=total.toFixed(2);
 renderLeaderboard();
-localStorage.users=JSON.stringify(users);
+saveUsers();
 }
+
 function deposit(){
 if(!users[currentUser].active) return notify("Compte non activé");
 let amount=parseFloat(depositAmount.value);
 if(!amount) return;
 users[currentUser].wallet.USDT+=amount;
 updateWallet();
+notify("Dépôt confirmé");
 }
 
 // ================= TRADING =================
@@ -390,25 +411,28 @@ function buy(){
 if(!users[currentUser].active) return notify("Compte non activé");
 let amt=parseFloat(amount.value);
 let coin=document.getElementById("coin").value;
-if(users[currentUser].wallet.USDT<amt) return;
-let price=Math.random()*30000+1000;
+if(users[currentUser].wallet.USDT<amt) return notify("Solde insuffisant");
+let price=marketPrice[coin];
 let qty=amt/price;
 users[currentUser].wallet.USDT-=amt;
 users[currentUser].wallet[coin]+=qty;
 addHistory("Achat "+coin);
 updateWallet();
+notify("Achat exécuté");
 }
+
 function sell(){
 if(!users[currentUser].active) return notify("Compte non activé");
 let amt=parseFloat(amount.value);
 let coin=document.getElementById("coin").value;
-let price=Math.random()*30000+1000;
+let price=marketPrice[coin];
 let qty=amt/price;
-if(users[currentUser].wallet[coin]<qty) return;
+if(users[currentUser].wallet[coin]<qty) return notify("Crypto insuffisant");
 users[currentUser].wallet[coin]-=qty;
 users[currentUser].wallet.USDT+=amt;
 addHistory("Vente "+coin);
 updateWallet();
+notify("Vente exécutée");
 }
 
 // ================= SIGNAL =================
@@ -484,7 +508,7 @@ active:true
 };
 }
 }
-localStorage.users=JSON.stringify(users);
+saveUsers();
 }
 simulateUsers();
 
