@@ -3,37 +3,130 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WINNER TRADING Exchange Demo</title>
-
+<title>WINNER TRADING Exchange</title>
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <style>
-body{margin:0;font-family:Arial;background:#111;color:white;scroll-behavior:smooth}
-header{position:fixed;width:100%;background:#083c2f;padding:10px;z-index:10;display:flex;justify-content:space-between;align-items:center}
-header button{background:#ff8800;color:white;border:none;padding:6px;margin:2px;border-radius:5px}
-.logo{font-weight:bold;color:#00ffa6}
-section{min-height:100vh;padding:80px 15px}
-.card{background:#1c1c1c;padding:12px;border-radius:10px;margin:8px 0}
-h2{color:#00ffa6}
-input,select{width:100%;padding:7px;margin:4px 0;border:none;border-radius:5px}
-button.action{background:#00c26e;border:none;padding:8px;width:100%;color:white;border-radius:6px}
-.orange{background:#ff8800}
-.hidden{display:none}
-#notif{position:fixed;top:60px;right:10px;background:#00c26e;padding:10px;border-radius:6px;display:none;z-index:20}
-table{width:100%;font-size:13px}
-td{padding:4px}
+/* ================= BODY & BASE ================= */
+body {
+  margin:0;
+  font-family:Arial;
+  background:#111;
+  color:white;
+  scroll-behavior:smooth;
+}
+header {
+  position:fixed;
+  width:100%;
+  background:#083c2f;
+  padding:10px 15px;
+  z-index:10;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+header button {
+  background:#ff8800;
+  color:white;
+  border:none;
+  padding:6px 10px;
+  margin:2px;
+  border-radius:5px;
+  font-size:20px;
+}
+.logo {
+  font-weight:bold;
+  color:#00ffa6;
+  font-size:18px;
+}
+section {
+  min-height:100vh;
+  padding:90px 15px 30px 15px;
+}
+.card {
+  background:#1c1c1c;
+  padding:15px;
+  border-radius:10px;
+  margin:10px 0;
+}
+h2 {
+  color:#00ffa6;
+  margin-bottom:10px;
+}
+input, select {
+  width:100%;
+  padding:7px;
+  margin:4px 0;
+  border:none;
+  border-radius:5px;
+}
+button.action {
+  background:#00c26e;
+  border:none;
+  padding:8px;
+  width:100%;
+  color:white;
+  border-radius:6px;
+  cursor:pointer;
+}
+button.action.orange { background:#ff8800; }
+.hidden { display:none; }
+#notif {
+  position:fixed;
+  top:60px;
+  right:10px;
+  background:#00c26e;
+  padding:10px;
+  border-radius:6px;
+  display:none;
+  z-index:20;
+  font-size:14px;
+}
+table { width:100%; font-size:13px; }
+td { padding:4px; }
 .green{color:#0f0}
 .red{color:#f44}
 ul#activity{list-style:none;padding-left:0;margin-top:10px}
-ul#activity li{padding:3px 0}
+ul#activity li{padding:3px 0; font-size:14px;}
+
+/* ================= RESPONSIVE ================= */
+@media(max-width:600px){
+  header {
+    flex-direction:row;
+  }
+  header .logo { font-size:16px; }
+  header button { font-size:24px; padding:6px 12px; }
+  #chart { height:300px !important; }
+}
+
+/* ================= MENU 3 LIGNES ================= */
+.menu-lines {
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  width:24px;
+  height:18px;
+}
+.menu-lines span {
+  display:block;
+  height:3px;
+  background:white;
+  border-radius:2px;
+}
 </style>
 </head>
 
 <body>
-
 <header>
-<span class="logo">🏆 WINNER TRADING</span>
-<button onclick="toggleLoginRegister()">☰</button>
+  <span class="logo">🏆 WINNER TRADING</span>
+  <button onclick="toggleLoginRegister()">
+    <div class="menu-lines">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </button>
 </header>
 
 <div id="notif"></div>
@@ -162,7 +255,7 @@ Solde plateforme: 200000 USDT
 </section>
 
 <script>
-// Graphique inchangé
+// ================== TRADINGVIEW CHART ==================
 new TradingView.widget({
 container_id:"chart",
 width:"100%",
@@ -172,7 +265,7 @@ interval:"30",
 theme:"dark"
 });
 
-// ===================== Fonctions génériques =====================
+// ===================== NOTIFICATIONS =====================
 function notify(msg){
 let n=document.getElementById("notif");
 n.innerText=msg;
@@ -185,6 +278,7 @@ document.getElementById(id).classList.remove("hidden");
 }
 function toggleLoginRegister(){show('loginRegister');}
 
+// =================== UTILISATEURS =====================
 let users=JSON.parse(localStorage.users||"{}");
 let currentUser=null;
 
@@ -196,7 +290,8 @@ wallet:{USDT:0,BTC:0,ETH:0,SOL:0},
 history:[],
 ref:"ADMIN-WT001",
 team:0,
-bonus:0
+bonus:0,
+active:true
 };
 localStorage.users=JSON.stringify(users);
 }
@@ -213,7 +308,7 @@ for(let u in users){ if(users[u].ref===refInput) refOwner=u; }
 
 users[email]={
 pass,
-wallet:{USDT:0,BTC:0,ETH:0,SOL:0}, // solde 0
+wallet:{USDT:0,BTC:0,ETH:0,SOL:0},
 history:[],
 ref:"WT"+Math.floor(Math.random()*99999),
 team:0,
@@ -221,12 +316,11 @@ bonus:0,
 sponsor:refOwner,
 active:false
 };
-
 notify("Compte créé, en attente activation admin");
 localStorage.users=JSON.stringify(users);
 }
 
-// ================= ADMIN ACTIVER COMPTE =================
+// ================= ADMIN =================
 function activateUser(){
 let id=document.getElementById("activateUserId").value;
 let amount=parseFloat(document.getElementById("activateAmount").value)||50;
@@ -399,6 +493,5 @@ let t=document.getElementById("totalBalance");
 t.style.visibility=t.style.visibility==="hidden"?"visible":"hidden";
 }
 </script>
-
 </body>
 </html>
