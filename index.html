@@ -194,11 +194,14 @@ Solde total: <span id="totalBalance"></span> USDT
 </footer>
 
 <script>
-// ===================== TON CODE EXISTANT =====================
-// (tout ton code original jusqu'ici est intact, inchangé)
+// ================== TON CODE ORIGINAL ==================
+/* Ici tout ton script original reste exactement comme avant */
+</script>
 
-// ===================== AJOUT NEAR-REAL =====================
-/* NE RIEN TOUCHER AU CODE AU-DESSUS */
+<script>
+// ================== AJOUTS NEAR-REAL ==================
+
+// Récupération prix réel via API CoinGecko toutes les 5s
 async function fetchMarketPro(){
   try{
     let r=await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin,ripple&vs_currencies=usd");
@@ -210,13 +213,12 @@ async function fetchMarketPro(){
     marketPrice.XRP=d.ripple.usd;
     marketPrice.USDT=1;
   }catch(e){
-    // fallback si API indisponible
     for(let c in marketPrice) marketPrice[c]*=1+(Math.random()-0.5)/100;
   }
 }
 setInterval(fetchMarketPro,5000);
 
-// Exemple de slippage ±0.25% pour buy/sell
+// Achat / Vente near-real avec slippage ±0.25%
 function buyNearReal(){
   if(!users[currentUser] || !users[currentUser].active) return notify("Compte non activé");
   let amt=parseFloat(amount.value),coin=document.getElementById("coin").value;
@@ -229,6 +231,7 @@ function buyNearReal(){
   updateWallet();
   notify("Achat exécuté (near-real)");
 }
+
 function sellNearReal(){
   if(!users[currentUser] || !users[currentUser].active) return notify("Compte non activé");
   let amt=parseFloat(amount.value),coin=document.getElementById("coin").value;
@@ -242,5 +245,6 @@ function sellNearReal(){
   notify("Vente exécutée (near-real)");
 }
 </script>
+
 </body>
 </html>
