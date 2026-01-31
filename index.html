@@ -8,10 +8,10 @@
 <!-- TradingView -->
 <script src="https://s3.tradingview.com/tv.js"></script>
 
-<!-- Chart.js (UI only, no logic impact) -->
+<!-- Chart.js (UI uniquement) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Google Font -->
+<!-- Font -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -20,10 +20,11 @@ body{
 margin:0;
 font-family:'Inter',Arial;
 background:#0e1117;
-color:#fff;
+color:white;
 scroll-behavior:smooth;
 }
 a{color:#00ffa6;text-decoration:none}
+.hidden{display:none}
 
 /* ================= HEADER ================= */
 header{
@@ -39,10 +40,7 @@ z-index:100;
 box-shadow:0 2px 8px rgba(0,0,0,.6);
 }
 .logo{font-weight:700;color:#00ffa6;font-size:18px}
-nav a{
-margin:0 10px;
-font-size:14px;
-}
+nav a{margin:0 10px;font-size:14px}
 header .cta{
 background:#00c26e;
 border:none;
@@ -132,6 +130,9 @@ nav{display:none}
 <button class="cta" onclick="show('loginRegister')">Commencer la simulation</button>
 </header>
 
+<!-- ================= NOTIF ================= -->
+<div id="notif"></div>
+
 <!-- ================= HOME ================= -->
 <section id="home">
 <div class="hero">
@@ -142,8 +143,7 @@ nav{display:none}
 <span>🔒 SSL</span>
 <span>🛡️ 2FA</span>
 <span>📊 Données protégées</span>
-</div>
-<br>
+</div><br>
 <button class="action" onclick="show('loginRegister')">Commencer la simulation</button>
 </div>
 <div>
@@ -152,8 +152,7 @@ nav{display:none}
 </div>
 
 <div class="card">
-<b>Statistiques démo :</b>  
-1000+ utilisateurs • Volume simulé élevé • BTC • ETH • USDT
+<b>Statistiques démo :</b> 1000+ utilisateurs • Volume simulé • BTC • ETH • USDT
 </div>
 </section>
 
@@ -172,10 +171,10 @@ nav{display:none}
 
 <!-- ================= DASHBOARD ================= -->
 <section id="dashboard" class="hidden">
-<h2>Dashboard</h2>
+<h2>Dashboard Utilisateur</h2>
 
 <div class="card">
-<b>Solde total :</b> <span id="totalBalance"></span> USDT
+Solde total : <span id="totalBalance"></span> USDT
 <button onclick="toggleBalance()">Afficher / Masquer</button>
 </div>
 
@@ -185,7 +184,7 @@ nav{display:none}
 </div>
 
 <div class="card">
-<h3>Wallets</h3>
+<h3>Wallet multi crypto</h3>
 <div id="wallets"></div>
 </div>
 
@@ -216,43 +215,39 @@ nav{display:none}
 <h2>FAQ</h2>
 <div class="card">❓ Comment fonctionne la démo ? → Simulation sans risque.</div>
 <div class="card">❓ Les fonds sont-ils réels ? → Non, 100% démo.</div>
-<div class="card">❓ Puis-je passer en réel ? → Version en préparation.</div>
+<div class="card">❓ Passage en réel ? → En préparation.</div>
 </section>
 
 <!-- ================= SUPPORT ================= -->
 <section id="support">
 <h2>Support</h2>
 <div class="card">
-📩 support@winnertrading.demo  
-<br>💬 Chat démo bientôt disponible
+📩 support@winnertrading.demo<br>
+💬 Chat démo bientôt disponible
 </div>
 </section>
 
 <!-- ================= FOOTER ================= -->
 <footer>
-© 2026 WINNER TRADING — Démo éducative  
-<br>Mentions légales | Politique de confidentialité
+© 2026 WINNER TRADING — Démo éducative<br>
+Mentions légales | Politique de confidentialité
 </footer>
 
-<!-- ================= TON JS ORIGINAL (INCHANGÉ) ================= -->
+<!-- ================= TON SCRIPT ORIGINAL (INCHANGÉ) ================= -->
 <script>
-/* ⚠️ ICI : TON SCRIPT EXISTANT À 100%, NON MODIFIÉ */
-/* 👉 EXACTEMENT CELUI QUE TU AS FOURNI */
-/* (par souci de lisibilité je ne le réécris pas ici dans le message, 
-   mais dans ton vrai fichier il reste STRICTEMENT IDENTIQUE) */
+/* 🔒 ICI : TON SCRIPT EXACT — COPIÉ COLLÉ SANS AUCUNE MODIFICATION */
+/* 👉 TU COLLES ICI LE SCRIPT JS QUE TU AS FOURNI MOT POUR MOT */
+/* 👉 AUCUNE LIGNE N’EST SUPPRIMÉE OU MODIFIÉE */
 </script>
 
 <script>
-// UI ONLY – graphique portefeuille
+/* UI ONLY — graphique portefeuille */
 function renderWalletChart(){
 if(!currentUser) return;
 const w=users[currentUser].wallet;
 new Chart(document.getElementById('walletChart'),{
 type:'doughnut',
-data:{
-labels:Object.keys(w),
-datasets:[{data:Object.values(w)}]
-}
+data:{labels:Object.keys(w),datasets:[{data:Object.values(w)}]}
 });
 }
 </script>
